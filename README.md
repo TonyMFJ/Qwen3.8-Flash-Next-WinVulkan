@@ -6,7 +6,7 @@
 ## 快速开始（5 步）
 
 1. **解压** 到 `C:\llama-build`（或任意路径，见下方"路径说明"）
-2. **放模型** — 按 `MODELS.md` 把 3 个 GGUF 放到位（约 185GB，HuggingFace 下载）
+2. **放模型** — 按 `MODELS.md` 把 GGUF 放到位（本机备份 [`TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF`](https://huggingface.co/TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF) 全套直下）
 3. **注册启动任务** — 右键 `scripts\install_schtasks.cmd` → 以管理员运行（或直接双击 `scripts\start_llamaserver_joined.cmd` 手动拉起）
 4. **等 2 分钟** 加载，验证：`curl http://127.0.0.1:1234/health` → `{"status":"ok"}`
 5. **打开控制台** — 浏览器开 `webui\index.html`（双击即可，自动连 1234；若同域部署由 llama-server 直接托管更佳）

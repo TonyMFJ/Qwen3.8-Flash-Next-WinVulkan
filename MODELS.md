@@ -14,6 +14,19 @@ C:\Users\antho\.lmstudio\models\
 
 ## 下载源（HuggingFace）
 
+### 本机备份（换机恢复首选，全套直连）
+
+**`TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF`** — 共 111.36GB，与 GitHub 仓库配套：
+
+| 文件 | 大小 | 对应放置路径 |
+|------|------|------------|
+| `Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16.gguf` | 87.06GB | agentionai 目录（本机已删，云端有） |
+| `ple_sidecar_joined.gguf` | 20.86GB | agentionai 目录（`--model-ple` 侧车） |
+| `mmproj-Qwen3.8-Flash-Next-f16.gguf` | 0.84GB | agentionai 目录 |
+| `mtp-Qwen3.8-Flash-Next-Q4_K_M.gguf` | 2.59GB | quimmedes 目录 |
+
+### 上游原仓
+
 | 仓库 | 文件 |
 |------|------|
 | `agentionai/Qwen3.8-Flash-Next-ROCmFP4-FAST-imatrix-GGUF` | 上面两个主模型 + mmproj |
