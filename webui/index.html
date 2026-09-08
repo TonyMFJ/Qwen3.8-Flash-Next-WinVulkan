@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qwen3.8-Flash-Next · WinVulkan 控制台</title>
+<style>
+:root{
+  --bg:#0d1117; --bg2:#161b22; --bg3:#1f2630; --line:#2d333b;
+  --fg:#e6edf3; --dim:#8b949e; --acc:#58a6ff; --ok:#3fb950; --warn:#d29922; --err:#f85149;
+  --mono:'Cascadia Code',Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--fg);font:14px/1.6 -apple-system,'Segoe UI',Roboto,sans-serif;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--bg2);border-bottom:1px solid var(--line);flex:none}
+header h1{font-size:15px;font-weight:600;letter-spacing:.3px}
+header .model{font-family:var(--mono);font-size:11px;color:var(--dim);background:var(--bg3);padding:2px 8px;border-radius:10px;max-width:420px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--dim);flex:none}
+.dot.ok{background:var(--ok);box-shadow:0 0 6px var(--ok)}
+.dot.err{background:var(--err);box-shadow:0 0 6px var(--err)}
+#statustext{font-size:11px;color:var(--dim)}
+nav{display:flex;gap:2px;padding:0 18px;background:var(--bg2);border-bottom:1px solid var(--line);flex:none}
+nav button{background:none;border:none;color:var(--dim);padding:9px 18px;cursor:pointer;font-size:13px;border-bottom:2px solid transparent}
+nav button:hover{color:var(--fg)}
+nav button.active{color:var(--acc);border-bottom-color:var(--acc)}
+main{flex:1;display:flex;overflow:hidden}
+.page{flex:1;display:none;overflow:hidden}
+.page.active{display:flex}
+/* ---------- CHAT ---------- */
+#chatwrap{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#msgs{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:78%;padding:10px 14px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:#1c3a5e;border-bottom-right-radius:3px}
+.msg.assistant{align-self:flex-start;background:var(--bg3);border-bottom-left-radius:3px}
+.msg.error{align-self:center;background:rgba(248,81,73,.12);color:var(--err);font-size:13px}
+.msg .stats{font-size:11px;color:var(--dim);margin-top:6px;font-family:var(--mono)}
+#inputrow{flex:none;padding:14px 24px;background:var(--bg2);border-top:1px solid var(--line);display:flex;gap:10px}
+#input{flex:1;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:10px;padding:11px 14px;font:inherit;resize:none;height:52px;outline:none}
+#input:focus{border-color:var(--acc)}
+button.primary{background:var(--acc);color:#04121f;border:none;border-radius:10px;padding:0 26px;font-size:14px;font-weight:600;cursor:pointer}
+button.primary:hover{filter:brightness(1.15)}
+button.ghost{background:var(--bg3);color:var(--dim);border:1px solid var(--line);border-radius:10px;padding:0 16px;cursor:pointer}
+button.ghost:hover{color:var(--fg)}
+/* ---------- SIDEBAR ---------- */
+#sidebar{width:280px;flex:none;background:var(--bg2);border-left:1px solid var(--line);padding:16px;overflow-y:auto}
+#sidebar h3{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--dim);margin-bottom:14px}
+.param{margin-bottom:13px}
+.param label{display:flex;justify-content:space-between;font-size:12px;color:var(--dim);margin-bottom:4px}
+.param label .val{font-family:var(--mono);color:var(--acc)}
+.param input[type=range]{width:100%;accent-color:var(--acc)}
+.param input[type=number]{width:100%;background:var(--bg3);border:1px solid var(--line);color:var(--fg);border-radius:6px;padding:6px 8px;font-family:var(--mono);font-size:13px}
+#resetparams{width:100%;margin-top:6px}
+/* ---------- API / STATUS ---------- */
+.pagecol{flex:1;flex-direction:column;overflow-y:auto;padding:22px 28px;gap:18px}
+.api-block{background:var(--bg2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.api-head{display:flex;justify-content:space-between;align-items:center;padding:9px 14px;background:var(--bg3)}
+.api-head span{font-size:12px;color:var(--dim);font-weight:600}
+.copybtn{background:var(--bg2);color:var(--acc);border:1px solid var(--line);border-radius:6px;padding:3px 12px;font-size:12px;cursor:pointer}
+.copybtn:hover{border-color:var(--acc)}
+.copybtn.done{color:var(--ok);border-color:var(--ok)}
+.api-block pre{padding:14px;font-family:var(--mono);font-size:12.5px;color:#c9d1d9;overflow-x:auto;white-space:pre}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.card{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px}
+.card .k{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.8px}
+.card .v{font-size:22px;font-family:var(--mono);color:var(--acc);margin-top:4px}
+.card .v small{font-size:12px;color:var(--dim)}
+.card.ok{border-left:3px solid var(--ok)} .card.err{border-left:3px solid var(--err)}
+.api-block pre.small{font-size:11.5px;max-height:340px;overflow:auto}
+h2.sec{font-size:13px;color:var(--dim);text-transform:uppercase;letter-spacing:1px;margin-top:6px}
+::-webkit-scrollbar{width:9px;height:9px} ::-webkit-scrollbar-thumb{background:#30363d;border-radius:5px} ::-webkit-scrollbar-track{background:transparent}
+@media(max-width:900px){#sidebar{display:none}}
+</style>
+</head>
+<body>
+<header>
+  <div class="dot" id="healthdot"></div>
+  <h1>Qwen3.8-Flash-Next <span style="color:var(--dim);font-weight:400">· WinVulkan</span></h1>
+  <span class="model" id="modelname">…</span>
+  <span id="statustext"></span>
+  <span style="flex:1"></span>
+  <span style="font-size:11px;color:var(--dim);font-family:var(--mono)" id="uptime"></span>
+</header>
+<nav>
+  <button data-page="chat" class="active">💬 聊天</button>
+  <button data-page="api">⧉ API</button>
+  <button data-page="status">📊 状态</button>
+</nav>
+<main>
+
+<!-- CHAT -->
+<div class="page active" id="page-chat">
+  <div id="chatwrap">
+    <div id="msgs"></div>
+    <div id="inputrow">
+      <textarea id="input" placeholder="输入消息… (Enter 发送 / Shift+Enter 换行)"></textarea>
+      <button class="primary" id="send">发送</button>
+      <button class="ghost" id="stop">■ 停止</button>
+      <button class="ghost" id="clear">清空</button>
+    </div>
+  </div>
+  <div id="sidebar">
+    <h3>采样参数（即时生效）</h3>
+    <div class="param"><label>temperature <span class="val" id="v-temp">0.80</span></label>
+      <input type="range" id="p-temp" min="0" max="2" step="0.05" value="0.8"></div>
+    <div class="param"><label>top_p <span class="val" id="v-topp">0.95</span></label>
+      <input type="range" id="p-topp" min="0.05" max="1" step="0.05" value="0.95"></div>
+    <div class="param"><label>top_k <span class="val" id="v-topk">40</span></label>
+      <input type="range" id="p-topk" min="0" max="100" step="1" value="40"></div>
+    <div class="param"><label>repeat_penalty <span class="val" id="v-rep">1.05</span></label>
+      <input type="range" id="p-rep" min="1" max="1.5" step="0.01" value="1.05"></div>
+    <div class="param"><label>max_tokens (n_predict)</label>
+      <input type="number" id="p-maxtok" value="512" min="1" max="16384"></div>
+    <div class="param"><label>seed (-1 = 随机)</label>
+      <input type="number" id="p-seed" value="-1"></div>
+    <button class="ghost" id="resetparams">重置默认</button>
+  </div>
+</div>
+
+<!-- API -->
+<div class="page pagecol" id="page-api">
+  <h2 class="sec">OpenAI 兼容接口（参数随左侧栏联动，改完参数回到这里复制）</h2>
+  <div class="api-block">
+    <div class="api-head"><span>curl</span><button class="copybtn" data-t="curl">复制</button></div>
+    <pre id="api-curl"></pre>
+  </div>
+  <div class="api-block">
+    <div class="api-head"><span>Python · openai SDK</span><button class="copybtn" data-t="py">复制</button></div>
+    <pre id="api-py"></pre>
+  </div>
+  <div class="api-block">
+    <div class="api-head"><span>Python · requests（流式）</span><button class="copybtn" data-t="req">复制</button></div>
+    <pre id="api-req"></pre>
+  </div>
+  <div class="api-block">
+    <div class="api-head"><span>原生 /completion（投机解码 / slot 级控制）</span><button class="copybtn" data-t="native">复制</button></div>
+    <pre id="api-native"></pre>
+  </div>
+  <p style="font-size:12px;color:var(--dim)">端点：/v1/chat/completions（OpenAI 兼容）· /completion（原生）· /health · /props · /metrics · /slots ｜ MTP 投机解码在服务端自动生效，无需客户端参数。</p>
+</div>
+
+<!-- STATUS -->
+<div class="page pagecol" id="page-status">
+  <h2 class="sec">服务状态（10s 自动刷新）</h2>
+  <div class="cards" id="statcards"></div>
+  <h2 class="sec">部署配置（编译期/启动期固定值）</h2>
+  <div class="cards" id="deploycards"></div>
+  <h2 class="sec">Metrics 原始数据</h2>
+  <div class="api-block"><pre class="small" id="rawmetrics">加载中…</pre></div>
+  <h2 class="sec">Slots</h2>
+  <div class="api-block"><pre class="small" id="rawslots">加载中…</pre></div>
+</div>
+</main>
+
+<script>
+const BASE = location.protocol.startsWith('http') ? location.origin : 'http://127.0.0.1:1234';
+const HEALTH_MS = 10000;
+const DEFAULTS = {temp:0.8, topp:0.95, topk:40, rep:1.05, maxtok:512, seed:-1};
+let chatHistory = [];    // {role, content}
+let aborter = null;
+let lastTtfb = 0, startTs = 0, genTokens = 0;
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('nav button').forEach(b=>{
+  b.onclick = ()=>{
+    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.getElementById('page-'+b.dataset.page).classList.add('active');
+    if(b.dataset.page==='api') renderApi();
+    if(b.dataset.page==='status') refreshStatus();
+  };
+});
+
+/* ---------- params ---------- */
+function P(id){return document.getElementById(id)}
+const rangeMap = {temp:['v-temp',v=>v.toFixed(2)],topp:['v-topp',v=>v.toFixed(2)],topk:['v-topk',v=>v],rep:['v-rep',v=>v.toFixed(2)]};
+for(const k in rangeMap){
+  P('p-'+k).oninput = e => { const [vid,fmt]=rangeMap[k]; P(vid).textContent = fmt(+e.target.value); renderApi(); };
+}
+P('p-maxtok').oninput = renderApi; P('p-seed').oninput = renderApi;
+P('resetparams').onclick = ()=>{ for(const k in DEFAULTS){P('p-'+k).value=DEFAULTS[k];} for(const k in rangeMap){const [vid,fmt]=rangeMap[k];P(vid).textContent=fmt(DEFAULTS[k]);} renderApi(); };
+function params(){
+  return {temperature:+P('p-temp').value, top_p:+P('p-topp').value, top_k:+P('p-topk').value,
+          repeat_penalty:+P('p-rep').value, max_tokens:+P('p-maxtok').value||512, seed:+P('p-seed').value};
+}
+
+/* ---------- health polling ---------- */
+let bootTs = Date.now();
+async function pollHealth(){
+  const dot=P('healthdot'), txt=P('statustext');
+  try{
+    const r = await fetch(BASE+'/health',{signal:AbortSignal.timeout(4000)});
+    const j = await r.json();
+    if(j.status==='ok'){dot.className='dot ok';txt.textContent='服务正常';}
+    else{dot.className='dot err';txt.textContent='状态: '+j.status;}
+  }catch(e){dot.className='dot err';txt.textContent='无法连接 '+BASE;}
+  try{
+    const p = await (await fetch(BASE+'/props')).json();
+    const mp=(p.model_path||'').split(/[\\/]/).pop()||'unknown';
+    P('modelname').textContent = mp.replace('.gguf','');
+    document.title = mp.replace('.gguf','')+' · 控制台';
+  }catch(e){}
+}
+setInterval(pollHealth, HEALTH_MS); pollHealth();
+
+/* ---------- chat ---------- */
+function addMsg(cls, text){
+  const d=document.createElement('div'); d.className='msg '+cls; d.textContent=text;
+  P('msgs').appendChild(d); P('msgs').scrollTop=P('msgs').scrollHeight; return d;
+}
+P('input').addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+P('send').onclick=send; P('clear').onclick=()=>{P('msgs').innerHTML='';chatHistory=[];};
+P('stop').onclick=()=>{ if(aborter) aborter.abort(); };
+
+async function send(){
+  const t = P('input').value.trim(); if(!t) return;
+  P('input').value=''; chatHistory.push({role:'user',content:t});
+  addMsg('user',t);
+  const pm = params();
+  const body = {model:'qwen4exp',messages:chatHistory.slice(),stream:true,temperature:pm.temperature,
+    top_p:pm.top_p,top_k:pm.top_k,repeat_penalty:pm.repeat_penalty,max_tokens:pm.max_tokens,seed:pm.seed};
+  const d = addMsg('assistant','▍');
+  aborter = new AbortController();
+  startTs = Date.now(); genTokens = 0; let full='';
+  try{
+    const r = await fetch(BASE+'/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(body),signal:aborter.signal});
+    if(!r.ok) throw new Error('HTTP '+r.status+' '+await r.text());
+    const reader = r.body.getReader(), dec = new TextDecoder();
+    let buf='';
+    while(true){
+      const {done,value} = await reader.read(); if(done) break;
+      buf += dec.decode(value,{stream:true});
+      const lines = buf.split('\n'); buf = lines.pop();
+      for(const line of lines){
+        const s = line.trim();
+        if(!s.startsWith('data:')) continue;
+        const payload = s.slice(5).trim();
+        if(payload==='[DONE]') continue;
+        try{
+          const j = JSON.parse(payload);
+          const delta = j.choices?.[0]?.delta?.content ?? j.choices?.[0]?.text ?? '';
+          if(j.usage?.completion_tokens) genTokens = j.usage.completion_tokens;
+          if(delta){ full+=delta; genTokens++;
+            d.textContent = full+' ▍'; P('msgs').scrollTop=P('msgs').scrollHeight; }
+        }catch(_){}
+      }
+    }
+    d.textContent = full || '(空回复)';
+    const dt=(Date.now()-startTs)/1000;
+    const st=document.createElement('div'); st.className='stats';
+    st.textContent = `${genTokens} tok · ${(genTokens/Math.max(dt,0.01)).toFixed(1)} t/s · ${dt.toFixed(1)}s · MTP 服务端生效`;
+    d.appendChild(st);
+    chatHistory.push({role:'assistant',content:full});
+  }catch(e){
+    if(e.name==='AbortError'){ d.textContent=full+'（已停止）'; chatHistory.push({role:'assistant',content:full}); }
+    else{ d.remove(); addMsg('error','请求失败: '+e.message+'（服务可能在预热或过载，查看服务端日志）'); }
+  }
+  aborter=null;
+}
+
+/* ---------- api tab ---------- */
+function renderApi(){
+  const pm = params();
+  const msgs=[{role:'user',content:'你好，介绍一下你自己'}];
+  const o = {model:'qwen4exp',messages:msgs,temperature:pm.temperature,top_p:pm.top_p,top_k:pm.top_k,
+             repeat_penalty:pm.repeat_penalty,max_tokens:pm.max_tokens,seed:pm.seed};
+  const json = JSON.stringify(o);
+  P('api-curl').textContent =
+`curl ${BASE}/v1/chat/completions \\
+  -H "Content-Type: application/json" \\
+  -d '${json}'`;
+  P('api-py').textContent =
+`from openai import OpenAI
+
+client = OpenAI(base_url="${BASE}/v1", api_key="none")
+resp = client.chat.completions.create(
+    model="qwen4exp",
+    messages=[{"role": "user", "content": "你好，介绍一下你自己"}],
+    temperature=${pm.temperature},
+    top_p=${pm.top_p},
+    max_tokens=${pm.max_tokens},
+)
+print(resp.choices[0].message.content)`;
+  P('api-req').textContent =
+`import requests, json
+
+payload = ${json}
+with requests.post("${BASE}/v1/chat/completions", json=payload, stream=True) as r:
+    for line in r.iter_lines():
+        if line and line.startswith(b"data:"):
+            data = line[5:].strip()
+            if data == b"[DONE]": break
+            chunk = json.loads(data)
+            delta = chunk["choices"][0].get("delta", {}).get("content", "")
+            print(delta, end="", flush=True)`;
+  P('api-native').textContent =
+`curl ${BASE}/completion \\
+  -H "Content-Type: application/json" \\
+  -d '{"prompt":"<|im_start|>user\\n你好<|im_end|>\\n<|im_start|>assistant\\n","n_predict":${pm.max_tokens},"temperature":${pm.temperature},"top_k":${pm.top_k},"top_p":${pm.top_p},"repeat_penalty":${pm.repeat_penalty},"seed":${pm.seed}}'`;
+}
+document.querySelectorAll('.copybtn').forEach(b=>{
+  b.onclick = async ()=>{
+    const txt = P('api-'+b.dataset.t).textContent;
+    try{ await navigator.clipboard.writeText(txt); }
+    catch(_){ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+    b.textContent='✓ 已复制'; b.classList.add('done');
+    setTimeout(()=>{b.textContent='复制';b.classList.remove('done');},1500);
+  };
+});
+renderApi();
+
+/* ---------- status tab ---------- */
+function card(k,v,cls=''){return `<div class="card ${cls}"><div class="k">${k}</div><div class="v">${v}</div></div>`}
+const DEPLOY = [
+  ['硬件','ROG Flow Z13 · Ryzen AI MAX+ 395 · 96GB carve'],
+  ['后端','llama.cpp fork · Vulkan · MTP draft patch'],
+  ['上下文','102,400 tok · KV host (q8_0)'],
+  ['PLE 表','磁盘化 20.86GB (--ngram-on-disk)'],
+  ['ubatch','2048 × cache 8192 × io 12 线程'],
+  ['启动任务','schtasks QwenPawLlamaServerJoined'],
+];
+async function refreshStatus(){
+  const c = [];
+  try{
+    const h = await (await fetch(BASE+'/health')).json();
+    c.push(card('Health', h.status==='ok'?'● ok':'● '+h.status, h.status==='ok'?'ok':'err'));
+  }catch(_){c.push(card('Health','● down','err'));}
+  try{
+    const p = await (await fetch(BASE+'/props')).json();
+    c.push(card('Slots', p.total_slots??'-'));
+    c.push(card('Ctx (default)', (p.default_generation_settings?.n_ctx??0).toLocaleString()));
+  }catch(_){}
+  try{
+    const m = await (await fetch(BASE+'/metrics')).text();
+    const g = n => { const r = m.match(new RegExp('^'+n+'\\\\s+([0-9.\\\\-eE]+)','m')); return r?+r[1]:null; };
+    const pt = g('llamacpp:prompt_tokens_total'), gt = g('llamacpp:tokens_predicted_total');
+    const kv = g('llamacpp:kv_cache_usage_ratio');
+    if(pt!=null) c.push(card('Prompt 处理总量', pt.toLocaleString()+' tok'));
+    if(gt!=null) c.push(card('生成总量', gt.toLocaleString()+' tok'));
+    if(kv!=null) c.push(card('KV Cache 占用', (kv*100).toFixed(1)+'<small>%</small>', kv>0.9?'err':'ok'));
+    if(m.includes('not_supported_error')){
+      P('rawmetrics').textContent = '（此服务未启用 /metrics：启动参数加 --metrics 后重启即可，当前部署包脚本已含该参数）';
+    } else {
+      P('rawmetrics').textContent = m.split('\\n').filter(l=>l&&!l.startsWith('#')).join('\\n');
+    }
+  }catch(_){P('rawmetrics').textContent='（/metrics 请求失败）';}
+  try{
+    const s = await (await fetch(BASE+'/slots')).json();
+    P('rawslots').textContent = JSON.stringify(s,null,2);
+  }catch(_){P('rawslots').textContent='（/slots 不可用）';}
+  P('statcards').innerHTML = c.join('');
+  P('deploycards').innerHTML = DEPLOY.map(d=>card(d[0],`<small>${d[1]}</small>`)).join('');
+}
+</script>
+</body>
+</html>
