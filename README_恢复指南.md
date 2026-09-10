@@ -34,6 +34,8 @@ curl http://127.0.0.1:1234/health     → {"status":"ok"}
 速度基准（PLE 磁盘版实测）：生成 14.5 t/s（MTP 生效）、prefill 299 t/s（24K tok）。
 老对照（per-head 全显存版）：生成 28 t/s / prefill 370 t/s——磁盘化换 22GB 显存，全链路 -37~50%。
 
+> ⚠️ **Benchmark conditions**: measured with the **APU package power limited to 80 W**. Environment details, driver/toolchain versions and build commands → [ENVIRONMENT.md](ENVIRONMENT.md).
+
 ### 3. it_assist 后端（已配好，无需动）
 - `C:\Users\antho\.qwenpaw\workspaces\it_assist\agent.json` → `"active_model": {"provider_id": "lmstudio", "model": "qwen4exp-flash-next"}`
 - QwenPaw 内置 lmstudio provider 固定指向 127.0.0.1:1234

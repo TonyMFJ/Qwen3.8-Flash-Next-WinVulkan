@@ -2,6 +2,8 @@
 
 > 87B MoE 模型在 ROG Flow Z13（Ryzen AI MAX+ 395 / 96GB 显存 carve / Windows / Vulkan 后端）上的完整本地部署方案。
 > 含 MTP 投机解码、PLE 表磁盘化（sidecar）、定制 WebUI 控制台。**本包为原始适配，网上无现成方案。**
+>
+> ⚠️ **Benchmark conditions**: every speed figure below was measured with the **APU package power limited to 80 W** (Ryzen AI MAX+ 395). Full environment, driver/toolchain versions and reproduction steps → [**ENVIRONMENT.md**](ENVIRONMENT.md).
 
 ## 快速开始（5 步）
 
@@ -16,6 +18,7 @@
 ```
 ├── README.md                 ← 本文件
 ├── README_恢复指南.md         ← 详细部署/恢复文档（重启后照做即可）
+├── ENVIRONMENT.md            ← 环境配置 / Environment setup (hardware, driver, toolchain, build cmd, 80W note)
 ├── MODELS.md                 ← 模型清单、下载源、放置路径
 ├── bin/                      ← llama-server / cli / mtmd-cli（静态链接，无 dll）
 ├── webui/index.html          ← 定制控制台：聊天 + 调参 + API 复制 + 状态读取
@@ -38,6 +41,10 @@
 | per-head + ub1024（旧） | 200 t/s | 10.65 t/s | 93GB |
 
 磁盘化 = 拿 -20% 速度换 22GB 显存余量（可开 100K 上下文 + 视觉 + 不崩）。
+
+> ⚠️ **All figures above were measured at an 80 W APU package-power limit.** Don't compare across different power profiles.
+> Long-context data on the same setting: **prefill ≈ 219 t/s at 90K tokens**; generation at 90K goes from **~14 t/s** (KV in host RAM) to **~30 t/s** (KV in VRAM, `-ctk/-ctv q8_0`).
+> Full environment (driver / toolchain / build commands / pitfalls) → [ENVIRONMENT.md](ENVIRONMENT.md).
 
 ## 已知限制
 
