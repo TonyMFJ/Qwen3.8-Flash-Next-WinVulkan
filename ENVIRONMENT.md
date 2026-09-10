@@ -161,13 +161,16 @@ Loading takes about 2 minutes (87 GB of weights streamed off disk); logs go to t
 > ⚠️ §6.1 and §6.2 come from **different sessions with different flag sets** — treat them as order-of-magnitude references.
 > For a fair comparison, pin down: power profile (80 W), context length, KV placement, and whether MTP is on.
 
-### 6.3 Control: per-head, fully resident in VRAM (rollback config)
+### 6.3 Control: per-head PLE, no disk-offload
 
 | Scenario | Result | Notes |
 |----------|--------|-------|
-| Prefill, 24K tokens | 370 t/s | No PLE disk-offload |
-| Generation | 15–16 t/s | 93 GB VRAM — right at the ceiling |
+| Prefill, 24K tokens | 370 t/s | Without PLE disk-offload |
+| Generation, short context, **KV in VRAM** | ≈ **28 t/s** | 93 GB VRAM — right at the ceiling |
+| Generation, short context, **KV in host** (`--no-kv-offload`) | 15–16 t/s | Same VRAM footprint, slower attention path |
 | VRAM usage | 93 GB / 96 GB | 3 GB left → no room for a 100K context plus vision |
+
+> The two generation rows differ **only** in where the KV cache lives — that is the ~45% swing, and it is the same lever reported in §6.2.
 
 **Takeaway**: PLE disk-offload trades roughly 20% prefill for 22 GB of VRAM headroom — which is what makes a 100K context *plus* vision possible without crashing.
 
