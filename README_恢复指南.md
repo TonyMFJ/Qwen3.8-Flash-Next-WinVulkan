@@ -1,5 +1,24 @@
 # Qwen3.8-Flash-Next 本机部署 — 恢复指南（2026-09-08 定稿）
 
+> **EN — Recovery quick reference** (the rest of this file is the original Chinese runbook; the
+> `it_assist` / QwenPaw / LM Studio paragraphs are specific to the author's machine and can be
+> ignored on yours):
+>
+> 1. **Start**: `schtasks /run /tn <your-task>` pointing at
+>    `scripts\start_llamaserver_joined.cmd` (PLE table on disk + ub2048 + MTP + vision + metrics).
+>    The legacy `QwenPawLlamaServer` task points at the old per-head 64K config — emergency rollback only.
+> 2. **Wait ~2 minutes**, then verify: `curl http://127.0.0.1:1234/health` → `{"status":"ok"}`.
+> 3. **Expect** (80 W power profile): prefill **299 t/s** @24K, generation **14.5 t/s** with MTP,
+>    VRAM **71 / 96 GB**. Same machine on the per-head resident config: 370 t/s / 28 t/s / 93 GB.
+>    → disk-offload trades ~20 % prefill for 22 GB of VRAM headroom.
+> 4. **Config that produced those numbers**: `--ngram-on-disk --ngram-io-threads 12 --ngram-cache 8192`
+>    + `-ubatch-size 2048` with the **JOINED** sidecar model. `-ubatch-size 4096` does not work here
+>    (with vision → mmproj load failure; without → decode OOM).
+> 5. **If start-up fails with plenty of free memory**: host RAM / VRAM fragmentation — the 862 MB
+>    mmproj host-visible buffer can no longer be allocated. **Only a reboot fixes it.**
+> 6. Detailed tuning levers and the full pitfall list: [TUNING_NOTES.md](TUNING_NOTES.md) /
+>    [ENVIRONMENT.md](ENVIRONMENT.md).
+
 ## ⚡ 2026-09-08 最新定稿：PLE 磁盘化 + ub2048（JOINED sidecar）
 
 **启动任务已切换：`schtasks /run /tn QwenPawLlamaServerJoined`（脚本 `start_llamaserver_joined.cmd`）**
