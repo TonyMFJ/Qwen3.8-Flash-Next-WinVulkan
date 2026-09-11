@@ -1,6 +1,7 @@
 # Tuning notes — what actually moves the needle
 
-> Field notes from getting an **87B MoE (Qwen3.8-Flash-Next architecture)** to run well on a single
+> Field notes from getting **Qwen3.8-Flash-Next** (a ~180 B model: 125 B transformer / 6 B activated,
+> plus a 51 B n-gram embedding table and a 4 B MTP draft) to run well on a single
 > **Ryzen AI MAX+ 395 (Strix Halo) / 96 GB VRAM carve-out / Windows + Vulkan** box.
 > Every number below was measured at the **80 W APU package-power limit** — see [ENVIRONMENT.md](ENVIRONMENT.md).
 

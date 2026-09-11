@@ -41,7 +41,7 @@
 |-----------|-------|
 | AMD GPU driver | Provides the Vulkan ICD (official Adrenalin driver used here) |
 | Vulkan runtime 1.4+ | Installed with the driver; verify with `vulkaninfo --summary` or the version of `C:\Windows\System32\vulkan-1.dll` |
-| Disk space | Main model 87 GB + MTP draft 2.6 GB + mmproj 0.84 GB + joined sidecar 21 GB ≈ **112 GB** (excluding backups) |
+| Disk space | Main model 93.48 GB (87.06 GiB) + MTP draft 2.79 GB (2.59 GiB) + mmproj 0.90 GB (0.84 GiB) + joined sidecar 22.40 GB (20.86 GiB) ≈ **119.57 GB (111.36 GiB)** (excluding backups) |
 
 ### 2.2 NOT required (don't waste time on these)
 
@@ -136,7 +136,7 @@ scripts\prefill_test.ps1                                 :: 24K-token prefill be
 scripts\tg_test.ps1                                      :: 128-token generation benchmark
 ```
 
-Loading takes about 2 minutes (87 GB of weights streamed off disk); logs go to the file each script redirects to.
+Loading takes about 2 minutes (≈93 GB of weights streamed off disk); logs go to the file each script redirects to.
 
 ---
 
@@ -182,9 +182,9 @@ Loading takes about 2 minutes (87 GB of weights streamed off disk); logs go to t
 |---|---------|-----------|
 | 1 | `--load-mode none` | **On Windows this fork requires `--load-mode auto`**; `none` kills the process |
 | 2 | `--ubatch-size 4096` | Always fails with a 96 GB carve: with vision → mmproj load failure; without → `ggml.c: GGML_ASSERT(ctx->mem_buffer != NULL)` (host malloc failure). **2048 is the ceiling** |
-| 3 | Windows sees only 31.6 GB RAM | 87B weights + KV + draft can never all fit in host memory → PLE disk-offload is a *requirement*, not a tuning trick |
+| 3 | Windows sees only 31.6 GB RAM | The ~180 B model (≈93 GB of weights) + KV + draft can never all fit in host memory → PLE disk-offload is a *requirement*, not a tuning trick |
 | 4 | KV in host vs VRAM | Host saves VRAM but 90K generation drops to 14 t/s; moving KV to VRAM (quantized q8_0) gives ≈ 30 t/s |
-| 5 | Repeatedly loading the 87B model | Host RAM fragments → the 862 MB mmproj host-visible buffer fails to allocate → **reboot is the only fix** |
+| 5 | Repeatedly loading the model (176.9 B tensor parameters) | Host RAM fragments → the 862 MB mmproj host-visible buffer fails to allocate → **reboot is the only fix** |
 | 6 | Process management | Don't launch the server with `start /min` (it gets reaped with the parent session, leaving orphans). Use `schtasks /run` or WMI |
 | 7 | File pre-warming | Useless when free physical RAM < 10 GB; Windows simply won't retain the cache |
 

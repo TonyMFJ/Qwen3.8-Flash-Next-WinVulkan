@@ -1,8 +1,8 @@
 # Qwen3.8-Flash-Next · Windows Vulkan Deployment Kit / Windows Vulkan 适配全家桶
 
-> **EN** | Complete local deployment kit for an **87B MoE** model on **ROG Flow Z13 (AMD Ryzen AI MAX+ 395 / 96 GB VRAM carve-out / Windows / Vulkan backend)**. Includes MTP speculative decoding, PLE n-gram table disk-offload (sidecar), fork binaries, startup scripts and a custom WebUI console. **This is original adaptation work — no off-the-shelf guide exists.**
+> **EN** | Complete local deployment kit for **Qwen3.8-Flash-Next** — a **~180 B model (125 B transformer with 6 B activated per token + a 51 B n-gram embedding table + a 4 B MTP draft)** — on **ROG Flow Z13 (AMD Ryzen AI MAX+ 395 / 96 GB VRAM carve-out / Windows / Vulkan backend)**. Includes MTP speculative decoding, PLE n-gram table disk-offload (sidecar), fork binaries, startup scripts and a custom WebUI console. **This is original adaptation work — no off-the-shelf guide exists.**
 >
-> **中文** | 87B MoE 模型在 ROG Flow Z13（Ryzen AI MAX+ 395 / 96GB 显存 carve / Windows / Vulkan 后端）上的完整本地部署方案。含 MTP 投机解码、PLE 表磁盘化（sidecar）、定制 WebUI 控制台。**本包为原始适配，网上无现成方案。**
+> **中文** | **Qwen3.8-Flash-Next**（总参约 **180B** = 主干 125B / 每 token 激活 6B + n-gram 表 51B + MTP 草稿 4B）在 ROG Flow Z13（Ryzen AI MAX+ 395 / 96GB 显存 carve / Windows / Vulkan 后端）上的完整本地部署方案。含 MTP 投机解码、PLE 表磁盘化（sidecar）、定制 WebUI 控制台。**本包为原始适配，网上无现成方案。**
 >
 > ⚠️ **Benchmark conditions / 基准条件**: every speed figure below was measured with the **APU package power limited to 80 W** (Ryzen AI MAX+ 395). Full environment, driver/toolchain versions and reproduction steps → [**ENVIRONMENT.md**](ENVIRONMENT.md) · Tuning levers and hard limits → [**TUNING_NOTES.md**](TUNING_NOTES.md)
 
@@ -59,5 +59,5 @@
 ## ⚠️ Known limits / 已知限制
 
 - `-ubatch-size 4096` always OOMs on a 96 GB carve (with or without vision); **2048 is the ceiling** / ubatch 4096 在 96GB carve 上必然 OOM，2048 是上限
-- Repeatedly loading the 87B model fragments host RAM → the 862 MB mmproj host-visible buffer fails to allocate → **only a reboot fixes it** / host RAM 碎片化后只能重启机器根治
+- Repeatedly loading the model (176.9 B tensor parameters ≈ 93 GB of weights) fragments host RAM → the 862 MB mmproj host-visible buffer fails to allocate → **only a reboot fixes it** / 反复加载 180B 模型（权重约 93GB）会把 host RAM 打碎，只能重启机器根治
 - Windows only sees **31.6 GB of RAM** (96 GB is carved out to the iGPU), which is why PLE disk-offload is mandatory rather than optional / 本机 Windows 只见 31.6GB RAM

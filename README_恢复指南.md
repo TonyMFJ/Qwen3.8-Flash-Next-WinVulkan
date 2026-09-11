@@ -73,7 +73,7 @@ agent.json 改回：
 ## 注意事项
 - ⚠️ **1234 = qwen4exp 专用**：LM Studio Developer Server 已被 antho 挪到 **1235**（别再抢 1234）
 - ⚠️ **2026-09-01 深夜定稿参数：`--no-kv-offload`（KV 走 host）+ `-c 102400`（100K 上下文）+ --parallel 1 + ubatch 512 + --no-mmproj**：
-  - 背景：96GB carve 被 87B+draft 顶满 → 请求期分配失败 → fork 的 GGML_ASSERT 带崩进程（APPCRASH ×3）。KV 挪 host 后显存解放，上下文开到 100K
+  - 背景：96GB carve 被 180B 模型（≈93GB 权重）+draft 顶满 → 请求期分配失败 → fork 的 GGML_ASSERT 带崩进程（APPCRASH ×3）。KV 挪 host 后显存解放，上下文开到 100K
   - 代价：生成速度 28.8 → **16.9 t/s**（KV host 路径损耗 ~40%，聊天仍比人读快）；会话越长生成越慢（attention 扫全量 KV）；100K 长文档投喂 prefill 需数分钟
   - 视觉功能暂缺（--no-mmproj），要加回：去掉该参数（显存余量 ~1.6GB，mmproj 0.8GB 可塞但紧）
   - if 嫌慢可回退：去 `--no-kv-offload` + `-c 16384` → 28.8 t/s 恢复，上下文缩回 16K

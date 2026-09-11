@@ -64,7 +64,7 @@ tensor). A per-head layout (16 small tensors) is skipped outright by the fork
 - `--load-mode none` is the crash culprit — **`--load-mode auto` is mandatory**（被污染成 `none`
   会把 87 GB 全读进 31.6 GB 内存后静默崩）
 - Putting mmproj on the CPU is physically impossible here (the 862 MB host-visible buffer competes
-  with the 87B model inside the same 96 GB carve → guaranteed crash); on the GPU it works but sits at
+  with the ~180 B model (≈93 GB of weights) inside the same 96 GB carve → guaranteed crash); on the GPU it works but sits at
   the VRAM ceiling
 - KV cache as `-ctk q8_0 -ctv q8_0 --no-kv-offload` (host) ≈ 5–6 GB of host memory at 100K context —
   but see [TUNING_NOTES.md](TUNING_NOTES.md) §2 for the decode cost
@@ -122,8 +122,8 @@ gguf_extract_ple.py       ← fork 自带：PLE 提取
 
 ### 本机部署关键经验（踩坑实录）
 
-- `--load-mode none` 是崩溃元凶，**必须 `--load-mode auto`**（被污染成 none 会把 87GB 全读进 31.6GB 内存静默崩）
-- mmproj 放 CPU 物理不可行（862MB host-visible buffer 与 87B 抢 96GB carve 必崩）；放 GPU 可行但贴上限
+- `--load-mode none` 是崩溃元凶，**必须 `--load-mode auto`**（被污染成 none 会把 93GB 权重全读进 31.6GB 内存静默崩）
+- mmproj 放 CPU 物理不可行（862MB host-visible buffer 与 180B 模型（≈93GB 权重）抢 96GB carve 必崩）；放 GPU 可行但贴上限
 - KV 用 `-ctk q8_0 -ctv q8_0 --no-kv-offload`（host），100K 上下文约 5-6GB host 内存
 - Windows 双层 SSH 引号必炸 → 复杂 PowerShell 写成 .ps1 用 `-File` 执行
 - 精确杀服务按 PID；批量 taskkill / for /f 盲杀会误伤无关进程

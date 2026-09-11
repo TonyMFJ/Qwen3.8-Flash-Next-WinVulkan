@@ -8,9 +8,9 @@
 ```
 C:\Users\antho\.lmstudio\models\
 ├── agentionai\Qwen3.8-Flash-Next-ROCmFP4-FAST-imatrix-GGUF\
-│   ├── Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16-JOINED.gguf   ← main model (final config, ~92 GB)
+│   ├── Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16-JOINED.gguf   ← main model, joined PLE (final config, 93.48 GB / 87.06 GiB)
 │   │                                                            ← 主模型（定稿用）
-│   ├── Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16.gguf          ← main model (per-head, rollback, ~93 GB)
+│   ├── Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16.gguf          ← main model, per-head PLE (rollback, 93.48 GB / 87.06 GiB)
 │   │                                                            ← 主模型（per-head 回滚用）
 │   └── mmproj-Qwen3.8-Flash-Next-f16.gguf                     ← vision projector (~0.8 GB)
 └── quimmedes\Qwen3.8-Flash-Next-MTP-GGUF\
@@ -23,14 +23,24 @@ C:\Users\antho\.lmstudio\models\
 
 ### This project's mirror (easiest for a fresh machine) / 本机备份（换机恢复首选）
 
-**[`TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF`](https://huggingface.co/TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF)** — 111.36 GB total, the companion mirror for this GitHub repo:
+**[`TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF`](https://huggingface.co/TonyMFJ/Qwen3.8-Flash-Next-WinVulkan-GGUF)** — 119.57 GB (111.36 GiB) of downloads, the companion mirror for this GitHub repo:
 
-| File / 文件 | Size | Destination / 放置路径 |
+> **Model facts / 模型参数** — Qwen3.8-Flash-Next is a **~180 B** model: **125 B transformer (6 B activated
+> per token) + a 51 B n-gram embedding table + a 4 B MTP draft**. Measured from the GGUF headers: the main
+> file holds **176.94 B** tensor parameters (125.74 B backbone + 51.20 B n-gram table), the MTP draft **3.88 B**.
+> **87.06 GiB / 93.48 GB is the size of the main quant file at 4.23 bpw — it is not a parameter count.**
+> （早期文档写成 "87B 模型"，那是把文件体积当成了参数量，已更正。）
+>
+> 中文：Qwen3.8-Flash-Next 总参约 **180B** = 主干 125B（每 token 激活 6B）+ n-gram 表 51B + MTP 草稿 4B；
+> 主模型文件实测 **176.94B** 张量参数（125.74B 主干 + 51.20B n-gram 表），草稿 **3.88B**。
+> **87.06 GiB / 93.48 GB 是 4.23 bpw 量化文件的体积，不是参数量。**
+
+| File / 文件 | Size / 大小 | Destination / 放置路径 |
 |------|------|------------|
-| `Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16.gguf` | 87.06 GB | `agentionai\` directory (removed locally, still on HF) |
-| `ple_sidecar_joined.gguf` | 20.86 GB | `agentionai\` directory — the `--model-ple` sidecar |
-| `mmproj-Qwen3.8-Flash-Next-f16.gguf` | 0.84 GB | `agentionai\` directory |
-| `mtp-Qwen3.8-Flash-Next-Q4_K_M.gguf` | 2.59 GB | `quimmedes\` directory |
+| `Qwen3.8-Flash-Next-ROCmFP4-FAST-v2-ple16.gguf` | 93.48 GB (87.06 GiB) | `agentionai\` directory (removed locally, still on HF) |
+| `ple_sidecar_joined.gguf` | 22.40 GB (20.86 GiB) | `agentionai\` directory — the `--model-ple` sidecar (the same 51.2 B-parameter table in joined layout) |
+| `mmproj-Qwen3.8-Flash-Next-f16.gguf` | 0.90 GB (0.84 GiB) | `agentionai\` directory |
+| `mtp-Qwen3.8-Flash-Next-Q4_K_M.gguf` | 2.79 GB (2.59 GiB) | `quimmedes\` directory |
 
 ### Upstream / 上游原仓
 
