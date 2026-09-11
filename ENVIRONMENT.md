@@ -199,7 +199,7 @@ ROCm/HIP was also evaluated on this machine. Recorded here so nobody repeats it:
 | Requirements | **AMD HIP SDK 7.2** (`HIP_PATH=C:\Program Files\AMD\ROCm\7.2\`) + `ggml-hip.dll` |
 | Build | Official `b10868` sources + patches, `-DGGML_HIP=ON -DGGML_BACKEND_DL=ON`; 143 targets built, gfx1151 enumerated fine |
 | Result | **Not recommended**: long-context attention at head_dim=256 is gated by the upstream `fattn` scheduler's ≤128 guard; forcing it through with a custom kernel hangs (observed). The expected compute win never materializes |
-| Verdict | This model runs on the **Vulkan** path. HIP stays a lab note — no HIP artifacts are shipped in this repo |
+| Verdict | This model runs on the **Vulkan** path. HIP stays a lab note — full write-up in [HIP_NOTES.md](HIP_NOTES.md), artifacts attached to the [release](../../releases) for reproduction only |
 
 ---
 

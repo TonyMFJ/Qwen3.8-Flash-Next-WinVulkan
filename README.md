@@ -27,6 +27,7 @@
 ├── README_恢复指南.md         ← detailed deploy & recovery doc / 详细部署恢复文档
 ├── ENVIRONMENT.md            ← environment setup (hardware, driver, toolchain, build cmds, 80 W note)
 ├── TUNING_NOTES.md           ← what actually moves the needle: MTP, KV placement, ubatch ceiling, pitfalls
+├── HIP_NOTES.md              ← the ROCm/HIP path we brought up and abandoned (release assets included)
 ├── MODELS.md                 ← model files, download sources, placement / 模型清单与放置路径
 ├── bin/                      ← llama-server / cli / mtmd-cli (statically linked, no DLLs)
 ├── webui/index.html          ← custom console: chat + sampler panel + API snippets + status
@@ -37,7 +38,7 @@
 │   ├── prefill_test.ps1 / tg_test.ps1 ← benchmark scripts
 │   └── warmup_ple.ps1                 ← PLE region pre-warm (only helps with spare memory)
 ├── tools/                    ← PLE sidecar toolchain (per-head → joined conversion)
-└── src-patches/              ← the two original source modifications (+ PATCHES.md)
+└── src-patches/              ← the two original source modifications (+ PATCHES.md, hip/ = the ROCm PLE-disk port)
 ```
 
 ## ⚡ Measured performance / 性能基准（reference machine）
@@ -53,7 +54,7 @@
 >
 > ⚠️ **All figures above were measured at an 80 W APU package-power limit.** Don't compare across different power profiles.
 > Long-context data on the same setting: **prefill ≈ 219 t/s at 90K tokens**; generation at 90K goes from **~14 t/s** (KV in host RAM) to **~30 t/s** (KV in VRAM, `-ctk/-ctv q8_0`).
-> Full environment (driver / toolchain / build commands / pitfalls) → [ENVIRONMENT.md](ENVIRONMENT.md) · tuning levers → [TUNING_NOTES.md](TUNING_NOTES.md)
+> Full environment (driver / toolchain / build commands / pitfalls) → [ENVIRONMENT.md](ENVIRONMENT.md) · tuning levers → [TUNING_NOTES.md](TUNING_NOTES.md) · the abandoned HIP/ROCm path → [HIP_NOTES.md](HIP_NOTES.md)
 
 ## ⚠️ Known limits / 已知限制
 
